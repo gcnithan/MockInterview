@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" fill="none">
+  <!-- Background Circle -->
+  <circle cx="80" cy="80" r="75" fill="#4F46E5" opacity="0.1"/>
+  <circle cx="80" cy="80" r="70" stroke="#4F46E5" stroke-width="2"/>
+  
+  <!-- AI/Tech Element -->
+  <path d="M45 55 L45 105 L55 105 L55 80 L75 80 L75 105 L85 105 L85 55 L75 55 L75 80 L55 80 L55 55 Z" fill="#4F46E5"/>
+  
+  <!-- Interview Element - Chat Bubbles & Face -->
+  <circle cx="115" cy="70" r="15" fill="#4F46E5"/>
+  <path d="M100 85 C100 85, 105 100, 120 95 C120 95, 125 90, 125 105 L95 105 C95 105, 90 90, 100 85Z" fill="#4F46E5"/>
+  
+  <!-- Connection lines representing communication -->
+  <path d="M45 115 C55 125, 105 125, 115 115" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+  <path d="M80 40 L80 30" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+  <path d="M65 45 L60 35" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+  <path d="M95 45 L100 35" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Microphone icon for interview -->
+  <rect x="75" y="105" width="10" height="20" rx="5" fill="#4F46E5"/>
+  <path d="M65 115 C65 125, 95 125, 95 115" stroke="#4F46E5" stroke-width="2" stroke-linecap="round"/>
+</svg>

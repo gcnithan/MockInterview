@@ -1,0 +1,243 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import AddNewInterview from "./_components/AddNewInterview";
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export default function DashboardPage() {
+  const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  
+  // Fetch all interviews when component mounts
+  useEffect(() => {
+    const fetchInterviews = async () => {
+      try {
+        const response = await fetch('/api/mockinterview');
+        if (!response.ok) {
+          throw new Error('Failed to fetch interviews');
+        }
+        const data = await response.json();
+        
+        // Handle different response structures
+        let interviewsList = [];
+        if (Array.isArray(data)) {
+          interviewsList = data;
+        } else if (data.interviews && Array.isArray(data.interviews)) {
+          interviewsList = data.interviews;
+        }
+        
+        setInterviews(interviewsList);
+      } catch (error) {
+        console.error('Error fetching interviews:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchInterviews();
+  }, []);
+
+  const handleInterviewClick = (interviewId) => {
+    router.push(`/dashboard/interview/${interviewId}`);
+  };
+  
+  const handleDeleteInterview = async (interviewId, e) => {
+    e.stopPropagation(); // Prevent clicking the card
+    
+    if (!confirm('Are you sure you want to delete this interview?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/mockinterview?mockId=${interviewId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete interview');
+      }
+      
+      // Remove the deleted interview from state
+      setInterviews(interviews.filter(interview => interview.mockId !== interviewId));
+    } catch (error) {
+      console.error('Error deleting interview:', error);
+      alert('Failed to delete interview. Please try again.');
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 120, damping: 20 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { scale: 0.95, opacity: 0 },
+    visible: { 
+      scale: 1, 
+      opacity: 1,
+      transition: { type: "spring", stiffness: 120, damping: 20 }
+    },
+    hover: { 
+      y: -5,
+      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      transition: { type: "spring", stiffness: 400, damping: 20 }
+    },
+    tap: { scale: 0.98 }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-6">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="max-w-7xl mx-auto"
+      >
+        <motion.div className="mb-10" variants={itemVariants}>
+          <h1 className="text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Welcome to AI Interview Mocker</h1>
+          <p className="text-gray-600 text-lg">Create and practice mock interviews with AI-generated questions and feedback.</p>
+        </motion.div>
+        
+        <motion.div className="mb-12" variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-4 flex items-center text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create New Interview
+          </h2>
+          <div className="max-w-md">
+            <AddNewInterview />
+          </div>
+        </motion.div>
+        
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-6 flex items-center text-gray-800">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 mr-3 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Your Previous Interviews
+          </h2>
+          
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {[1, 2, 3].map((item) => (
+                  <div key={item} className="rounded-xl bg-white shadow-md p-6 animate-pulse">
+                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+                  </div>
+                ))}
+              </motion.div>
+            ) : interviews.length === 0 ? (
+              <motion.div 
+                key="empty"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                className="bg-white rounded-xl shadow-lg p-10 text-center border border-gray-100"
+              >
+                <div className="bg-indigo-50 rounded-full h-24 w-24 flex items-center justify-center mx-auto mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 mb-3">No Interviews Yet</h3>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">Create your first interview to start practicing and improving your interview skills.</p>
+                <motion.div 
+                  whileHover={{ scale: 1.03 }} 
+                  whileTap={{ scale: 0.98 }}
+                  className="inline-flex items-center justify-center"
+                >
+                  <a href="#create-new" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-200">
+                    Create Your First Interview
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </a>
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="interviews"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit={{ opacity: 0, transition: { duration: 0.2 } }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {interviews.map((interview) => (
+                  <motion.div 
+                    key={interview.mockId}
+                    variants={cardVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    className="bg-white rounded-xl shadow-md overflow-hidden transition-all cursor-pointer relative border border-gray-100"
+                    onClick={() => handleInterviewClick(interview.mockId)}
+                  >
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2"></div>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900">{interview.jobPosition}</h3>
+                        <span className="bg-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center">
+                          {interview.jobExperience} years
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-5 text-sm line-clamp-2">{interview.jobDesc}</p>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {new Date(interview.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                        <motion.button 
+                          onClick={(e) => handleDeleteInterview(interview.mockId, e)}
+                          className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center bg-white hover:bg-red-50 px-2 py-1 rounded-md transition-colors duration-200"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
